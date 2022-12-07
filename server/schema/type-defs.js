@@ -19,7 +19,8 @@ const typeDefs = gql`
   }
 
   type Query {
-    users: [User!]!
+    # changed user type to UsersResult for union error handling
+    users: UsersResult
     user(id: ID!): User!
     movies: [Movie!]!
     movie(name: String!): Movie!
@@ -50,6 +51,17 @@ const typeDefs = gql`
     ITALY
     AUSTRIA
   }
+
+  type UsersSuccessfulResult {
+    users: [User!]!
+  }
+
+  type UsersErrorResult {
+    message: String!
+  }
+
+  # this is a union between the two results. It will be returned only one not null
+  union UsersResult = UsersSuccessfulResult | UsersErrorResult
 `;
 
 module.exports = { typeDefs };

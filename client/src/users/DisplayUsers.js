@@ -4,11 +4,19 @@ import { useQuery, gql, useMutation } from "@apollo/client";
 const QUERY_ALL_USERS = gql`
   query GetAllUsers {
     users {
-      id
-      name
-      username
-      age
-      nationality
+      ... on UsersSuccessfulResult {
+        users {
+          id
+          name
+          username
+          age
+          nationality
+        }
+      }
+
+      ... on UsersErrorResult {
+        message
+      }
     }
   }
 `;
@@ -25,6 +33,16 @@ const CREATE_USER_MUTATION = gql`
   }
 `;
 
+const DELETE_USER = gql`
+  mutation DeleteUser($id: ID!) {
+    deleteUser(id: $id) {
+      id
+      name
+      username
+    }
+  }
+`;
+
 function DisplayUsers() {
   const {
     data: dataUsers,
@@ -34,6 +52,7 @@ function DisplayUsers() {
   } = useQuery(QUERY_ALL_USERS);
 
   const [createUser] = useMutation(CREATE_USER_MUTATION);
+  const [deleteUser] = useMutation(DELETE_USER);
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -97,9 +116,9 @@ function DisplayUsers() {
           }}
         ></input>
       </div>
-      <div className={"text-center"}>
+      <div className={"text-center mb-4"}>
         <button
-          className={"btn btn-outline-secondary w-100"}
+          className={"btn btn btn-primary w-100"}
           type="button"
           onClick={() => {
             createUser({
@@ -121,11 +140,13 @@ function DisplayUsers() {
               <th scope="col">Username</th>
               <th scope="col">Age</th>
               <th scope="col">Nationality</th>
+              <th scope="col"></th>
             </tr>
           </thead>
           <tbody>
             {dataUsers &&
-              dataUsers.users.map((user, index) => {
+              dataUsers.users &&
+              dataUsers.users.users.map((user, index) => {
                 return (
                   <tr>
                     <th>{index + 1}</th>
@@ -136,6 +157,23 @@ function DisplayUsers() {
                     <td>
                       {user.nationality.charAt(0) +
                         user.nationality.slice(1).toLowerCase()}
+                    </td>
+                    <td>
+                      <button
+                        className={"btn btn btn-danger w-100"}
+                        type="button"
+                        onClick={() => {
+                          deleteUser({
+                            variables: {
+                              id: Number(user.id),
+                            },
+                          });
+                          // refetching the data every time a user is added to the list
+                          refetch();
+                        }}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 );

@@ -4,8 +4,10 @@ const _ = require("lodash");
 const resolvers = {
   Query: {
     // User resolvers
-    users: () => {
-      return UserList;
+    users: (parent, args, context, info) => {
+      console.log(info);
+      if (UserList) return { users: UserList };
+      return { message: "Internal Server Error" };
     },
     // parent refers to the parent in query chain
     user: (parent, args) => {
@@ -29,7 +31,9 @@ const resolvers = {
   // in graphql if you have two different table, you can join them simply by putting the adding the field
   // in the type-defs and creating a resolver like this one below
   User: {
-    favouriteMovies: () => {
+    favouriteMovies: (parent) => {
+      // shows the previous level in the query, in this case, the user who has the movie as their favorite
+      console.log(parent);
       return _.filter(MovieList, (movie) => movie.year >= 2014);
     },
   },
@@ -61,6 +65,20 @@ const resolvers = {
       const user = _.find(UserList, { id: Number(id) });
       _.remove(UserList, (user) => user.id === Number(id));
       return user;
+    },
+  },
+
+  UsersResult: {
+    __resolveType(obj) {
+      // checking the object and returning the corresponding type
+      if (obj.users) {
+        return "UsersSuccessfulResult";
+      }
+      if (obj.message) {
+        return "UsersErrorResult";
+      }
+      // in graphql error case
+      return null;
     },
   },
 };

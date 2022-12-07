@@ -95,7 +95,7 @@ function DisplayMovies() {
         ></input>
         <div className={"input-group-append"}>
           <button
-            className={"btn btn-outline-secondary"}
+            className={"btn btn-info"}
             type="button"
             onClick={() => {
               fetchMovie({
